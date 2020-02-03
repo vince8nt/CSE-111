@@ -55,6 +55,7 @@ void fn_echo (inode_state& state, const wordvec& words){
    cout << word_range (words.cbegin() + 1, words.cend()) << endl;
 }
 
+// seems to be working
 
 void fn_exit (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
@@ -65,6 +66,7 @@ void fn_exit (inode_state& state, const wordvec& words){
 void fn_ls (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
+   cout << "called ls\n";
 }
 
 void fn_lsr (inode_state& state, const wordvec& words){
