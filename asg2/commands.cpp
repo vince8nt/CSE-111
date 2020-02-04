@@ -64,9 +64,11 @@ void fn_exit (inode_state& state, const wordvec& words){
 }
 
 void fn_ls (inode_state& state, const wordvec& words){
-   DEBUGF ('c', state);
-   DEBUGF ('c', words);
-   cout << "called ls\n";
+   map<string,inode_ptr> hello =  state.getDirents();
+   for (std::map<string, inode_ptr>::iterator it=hello.begin();
+      it != hello.end(); ++it) {
+      cout << it->first << "\n";
+   }
 }
 
 void fn_lsr (inode_state& state, const wordvec& words){
@@ -90,8 +92,12 @@ void fn_prompt (inode_state& state, const wordvec& words){
 }
 
 void fn_pwd (inode_state& state, const wordvec& words){
-   DEBUGF ('c', state);
-   DEBUGF ('c', words);
+   map<string,inode_ptr> hello =  state.getDirents();
+   for (std::map<string, inode_ptr>::iterator it=hello.begin();
+      it != hello.end(); ++it) {
+      cout << it->first << " ";
+   }
+   cout << "\n";
 }
 
 void fn_rm (inode_state& state, const wordvec& words){
