@@ -9,10 +9,13 @@ using namespace std;
 #include "debug.h"
 #include "file_sys.h"
 
+
 // each inode has a unique number
 int inode::next_inode_nr {1};
 
-// either returns the file type or size? not sure which
+
+// class file_type -----------------------------------------------
+// returns the file type
 struct file_type_hash {
    size_t operator() (file_type type) const {
       return static_cast<size_t> (type);
@@ -28,13 +31,18 @@ ostream& operator<< (ostream& out, file_type type) {
    return out << hash[type];
 }
 
+
+// class inode_state --------------------------------------------
 // inode_state constructor
 inode_state::inode_state() {
-   DEBUGF ('i', "root = " << root << ", cwd = " << cwd
-          << ", prompt = \"" << prompt() << "\"");
+   root = make_shared<inode>(file_type::DIRECTORY_TYPE);
+   cwd = root;
+
+   (*root->contents).addDirents(".", root);
+   (*root->contents).addDirents("..", root);
 }
 
-// prompt that comes in
+// returns the string: "% "
 const string& inode_state::prompt() const { return prompt_; }
 
 // string representation of inode state
@@ -44,7 +52,14 @@ ostream& operator<< (ostream& out, const inode_state& state) {
    return out;
 }
 
-// inode constructor
+// getter for dirents
+map<string,inode_ptr> inode_state::getDirents() {
+   return (*cwd->contents).getDirents();
+}
+
+
+// class inode --------------------------------------------------
+// constructor
 inode::inode(file_type type): inode_nr (next_inode_nr++) {
    switch (type) {
       case file_type::PLAIN_TYPE:
@@ -54,21 +69,27 @@ inode::inode(file_type type): inode_nr (next_inode_nr++) {
            contents = make_shared<directory>();
            break;
    }
-   DEBUGF ('i', "inode " << inode_nr << ", type = " << type);
+   // remove this later
+   cout << "inode " << inode_nr << ", type = " << type << "\n";
 }
 
-// returns the inode number
+// getter for number
 int inode::get_inode_nr() const {
-   DEBUGF ('i', "inode = " << inode_nr);
    return inode_nr;
 }
 
+
 
-// file_error constructor
+// file_error class ---------------------------------------------
+// constructor
 file_error::file_error (const string& what):
             runtime_error (what) {
 }
 
+
+// shouldn't have to change
+// class base_file ----------------------------------------------
+// all methods must be overridden
 // returnst the string value of the file data
 const wordvec& base_file::readfile() const {
    throw file_error ("is a " + error_file_type());
@@ -94,9 +115,24 @@ inode_ptr base_file::mkfile (const string&) {
    throw file_error ("is a " + error_file_type());
 }
 
+// does nothing - shouldn't be called
+map<string,inode_ptr> base_file::getDirents() {
+   cout << "wrong getDirents";
+   throw file_error ("is a " + error_file_type());
+}
+
+// does nothing - shouldn't be called
+void base_file::addDirents(string, inode_ptr) {
+   cout << "wrong getDirents";
+   throw file_error ("is a " + error_file_type());
+}
+
+
 
+// good for now
+// class plain_file ------------------------------------------
 // returns the file size in bytes
-size_t plain_file::size() const {
+size_t plain_file::size() const { // obv needs to be changed
    size_t size {0};
    DEBUGF ('i', "size = " << size);
    return size;
@@ -110,30 +146,60 @@ const wordvec& plain_file::readfile() const {
 
 // writes to the file
 void plain_file::writefile (const wordvec& words) {
-   DEBUGF ('i', words);
+   data = words;
+   cout << "wrote to file: " << words << "\n";
 }
 
+
+// good for now
+// class directory -------------------------------------------
 // returns the size in bytes of the directory
+directory::directory() {
+   dirents = map<string,inode_ptr>();
+}
+
 size_t directory::size() const {
    size_t size {0};
-   DEBUGF ('i', "size = " << size);
+   cout << "size = " << size << "\n";
    return size;
 }
 
 // removes the directory (and everything inside of it)
 void directory::remove (const string& filename) {
-   DEBUGF ('i', filename);
+   dirents.erase(filename);
+   cout << "removed " << filename << "\n";
 }
 
 // makes a directory
 inode_ptr directory::mkdir (const string& dirname) {
-   DEBUGF ('i', dirname);
-   return nullptr;
+   inode_ptr ans = make_shared<inode>(file_type::DIRECTORY_TYPE);
+   dirents.insert(
+      std::pair<string,inode_ptr>(dirname, ans)
+   );
+   cout << "made new directory: " << dirname << "\n";
+   return ans;
 }
 
 // makes a file
 inode_ptr directory::mkfile (const string& filename) {
-   DEBUGF ('i', filename);
-   return nullptr;
+   inode_ptr ans = make_shared<inode>(file_type::PLAIN_TYPE);
+   dirents.insert(
+      std::pair<string,inode_ptr>(filename, ans)
+   );
+   cout << "made new file: " << filename << "\n";
+   return ans;
 }
+
+// getter for dirents
+map<string,inode_ptr> directory::getDirents() {
+   return dirents;
+}
+
+// inserter
+void directory::addDirents(string name, inode_ptr thing) {
+   dirents.emplace(name, thing);
+}
+
+
+
 

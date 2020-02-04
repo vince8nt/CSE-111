@@ -42,6 +42,8 @@ class inode_state {
       inode_state& operator= (const inode_state&) = delete; // op=
       inode_state();
       const string& prompt() const;
+      map<string,inode_ptr> getDirents();
+
 };
 
 // class inode -
@@ -84,6 +86,8 @@ class base_file {
       base_file() = default;
       virtual const string error_file_type() const = 0;
    public:
+      virtual map<string,inode_ptr> getDirents();
+      virtual void addDirents(string,inode_ptr);
       virtual ~base_file() = default;
       base_file (const base_file&) = delete;
       base_file& operator= (const base_file&) = delete;
@@ -142,10 +146,13 @@ class directory: public base_file {
          return "directory";
       }
    public:
+      directory();
       virtual size_t size() const override;
       virtual void remove (const string& filename) override;
       virtual inode_ptr mkdir (const string& dirname) override;
       virtual inode_ptr mkfile (const string& filename) override;
+      virtual map<string,inode_ptr> getDirents() override;
+      virtual void addDirents(string,inode_ptr) override;
 };
 
 #endif
