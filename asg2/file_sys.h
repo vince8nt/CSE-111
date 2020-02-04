@@ -42,9 +42,8 @@ class inode_state {
       inode_state& operator= (const inode_state&) = delete; // op=
       inode_state();
       const string& prompt() const;
-      map<string,inode_ptr> getDirents();
-      void mkdir(string);
       void setPrompt(string);
+      inode_ptr get_inode(string);
 
 };
 
@@ -73,7 +72,9 @@ class inode {
       int get_inode_nr() const;
       string get_file_type();
       int get_file_size();
-
+      void rm(string);
+      map<string,inode_ptr> getDirents();
+      void add_dirents(string, inode_ptr);
 };
 
 

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <unordered_map>
+#include <string.h>
 
 using namespace std;
 
@@ -52,18 +53,32 @@ ostream& operator<< (ostream& out, const inode_state& state) {
    return out;
 }
 
-// getter for dirents
-map<string,inode_ptr> inode_state::getDirents() {
-   return (*cwd->contents).getDirents();
-}
-
-void inode_state::mkdir(string name) {
-   inode_ptr temp = (*cwd->contents).mkdir(name);
-}
-
 void inode_state::setPrompt(string prompt) {
    prompt_ = prompt;
 }
+
+inode_ptr inode_state::get_inode(string input) {
+   char * dir = strdup(input.c_str());
+   inode_ptr ans;
+   if (input == "") return cwd;
+   if (input.at(0) == '/') ans = root;
+   else ans = cwd;
+   char * pch;
+   pch = strtok (dir, "/");
+   
+   while (pch != NULL) {
+      // TODO What if directory not existing
+      try {
+         ans = (*ans->contents).getDirents().at(pch);
+      }
+      catch (const out_of_range &) {
+         return nullptr;
+      }
+      pch = strtok (NULL, "/");
+   }
+   return ans;
+}
+
 
 
 // class inode --------------------------------------------------
@@ -94,6 +109,18 @@ string inode::get_file_type() {
 
 int inode::get_file_size() {
    return (*contents).size();
+}
+
+void inode::rm(string name) {
+   (*contents).remove(name);
+}
+
+map<string,inode_ptr> inode::getDirents() {
+   return (*contents).getDirents();
+}
+
+void inode::add_dirents(string name, inode_ptr thing) {
+   (*contents).addDirents(name, thing);
 }
 
 
@@ -147,6 +174,7 @@ void base_file::addDirents(string, inode_ptr) {
 }
 
 
+
 
 // good for now
 // class plain_file ------------------------------------------
@@ -186,7 +214,7 @@ size_t directory::size() const {
 // removes the directory (and everything inside of it)
 void directory::remove (const string& filename) {
    dirents.erase(filename);
-   // cout << "removed " << filename << "\n";
+   cout << "removed " << filename << "\n";
 }
 
 // makes a directory
@@ -218,6 +246,11 @@ map<string,inode_ptr> directory::getDirents() {
 void directory::addDirents(string name, inode_ptr thing) {
    dirents.emplace(name, thing);
 }
+
+
+
+
+
 
 
 
