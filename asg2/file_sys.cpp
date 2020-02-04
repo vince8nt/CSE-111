@@ -57,26 +57,45 @@ map<string,inode_ptr> inode_state::getDirents() {
    return (*cwd->contents).getDirents();
 }
 
+void inode_state::mkdir(string name) {
+   inode_ptr temp = (*cwd->contents).mkdir(name);
+}
+
+void inode_state::setPrompt(string prompt) {
+   prompt_ = prompt;
+}
+
 
 // class inode --------------------------------------------------
 // constructor
 inode::inode(file_type type): inode_nr (next_inode_nr++) {
    switch (type) {
       case file_type::PLAIN_TYPE:
+           myType = "PLAIN_TYPE";
            contents = make_shared<plain_file>();
            break;
       case file_type::DIRECTORY_TYPE:
+           myType = "DIRECTORY_TYPE";
            contents = make_shared<directory>();
            break;
    }
    // remove this later
-   cout << "inode " << inode_nr << ", type = " << type << "\n";
+   // cout << "inode " << inode_nr << ", type = " << type << "\n";
 }
 
 // getter for number
 int inode::get_inode_nr() const {
    return inode_nr;
 }
+
+string inode::get_file_type() {
+   return myType;
+}
+
+int inode::get_file_size() {
+   return (*contents).size();
+}
+
 
 
 
@@ -147,7 +166,7 @@ const wordvec& plain_file::readfile() const {
 // writes to the file
 void plain_file::writefile (const wordvec& words) {
    data = words;
-   cout << "wrote to file: " << words << "\n";
+   // cout << "wrote to file: " << words << "\n";
 }
 
 
@@ -160,14 +179,14 @@ directory::directory() {
 
 size_t directory::size() const {
    size_t size {0};
-   cout << "size = " << size << "\n";
+   // cout << "size = " << size << "\n";
    return size;
 }
 
 // removes the directory (and everything inside of it)
 void directory::remove (const string& filename) {
    dirents.erase(filename);
-   cout << "removed " << filename << "\n";
+   // cout << "removed " << filename << "\n";
 }
 
 // makes a directory
@@ -176,7 +195,7 @@ inode_ptr directory::mkdir (const string& dirname) {
    dirents.insert(
       std::pair<string,inode_ptr>(dirname, ans)
    );
-   cout << "made new directory: " << dirname << "\n";
+   // cout << "made new directory: " << dirname << "\n";
    return ans;
 }
 
@@ -186,7 +205,7 @@ inode_ptr directory::mkfile (const string& filename) {
    dirents.insert(
       std::pair<string,inode_ptr>(filename, ans)
    );
-   cout << "made new file: " << filename << "\n";
+   // cout << "made new file: " << filename << "\n";
    return ans;
 }
 

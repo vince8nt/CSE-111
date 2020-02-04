@@ -15,7 +15,7 @@ using namespace std;
 // inode_t -
 //    An inode is either a directory or a plain file.
 
-enum class file_type {PLAIN_TYPE, DIRECTORY_TYPE};
+enum class file_type {PLAIN_TYPE = 0, DIRECTORY_TYPE};
 class inode;
 class base_file;
 class plain_file;
@@ -43,6 +43,8 @@ class inode_state {
       inode_state();
       const string& prompt() const;
       map<string,inode_ptr> getDirents();
+      void mkdir(string);
+      void setPrompt(string);
 
 };
 
@@ -64,10 +66,14 @@ class inode {
    private:
       static int next_inode_nr;
       int inode_nr;
+      string myType;
       base_file_ptr contents;
    public:
       inode (file_type);
       int get_inode_nr() const;
+      string get_file_type();
+      int get_file_size();
+
 };
 
 
