@@ -44,6 +44,7 @@ class inode_state {
       const string& prompt() const;
       void setPrompt(string);
       inode_ptr get_inode(string);
+      void setCwd(inode_ptr);
 
 };
 
@@ -75,6 +76,8 @@ class inode {
       void rm(string);
       map<string,inode_ptr> getDirents();
       void add_dirents(string, inode_ptr);
+      wordvec& get_words();
+      void setWords(wordvec&);
 };
 
 
@@ -104,6 +107,7 @@ class base_file {
       virtual void remove (const string& filename);
       virtual inode_ptr mkdir (const string& dirname);
       virtual inode_ptr mkfile (const string& filename);
+      virtual wordvec& getWords();
 };
 
 // class plain_file -
@@ -125,6 +129,7 @@ class plain_file: public base_file {
       virtual size_t size() const override;
       virtual const wordvec& readfile() const override;
       virtual void writefile (const wordvec& newdata) override;
+      virtual wordvec& getWords() override;
 };
 
 // class directory -

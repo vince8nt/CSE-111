@@ -67,7 +67,6 @@ inode_ptr inode_state::get_inode(string input) {
    pch = strtok (dir, "/");
    
    while (pch != NULL) {
-      // TODO What if directory not existing
       try {
          ans = (*ans->contents).getDirents().at(pch);
       }
@@ -77,6 +76,10 @@ inode_ptr inode_state::get_inode(string input) {
       pch = strtok (NULL, "/");
    }
    return ans;
+}
+
+void inode_state::setCwd(inode_ptr next) {
+   cwd = next;
 }
 
 
@@ -121,6 +124,19 @@ map<string,inode_ptr> inode::getDirents() {
 
 void inode::add_dirents(string name, inode_ptr thing) {
    (*contents).addDirents(name, thing);
+   if ((*thing).myType == "DIRECTORY_TYPE") {
+      (*thing->contents).addDirents(".", 
+         (*contents).getDirents().at("."));
+      (*thing->contents).addDirents("..", inode_ptr(this));
+   }
+}
+
+wordvec& inode::get_words() {
+   return (*contents).getWords();
+}
+
+void inode::setWords(wordvec& words) {
+   (*contents).writefile(words);
 }
 
 
@@ -173,14 +189,23 @@ void base_file::addDirents(string, inode_ptr) {
    throw file_error ("is a " + error_file_type());
 }
 
+wordvec& base_file::getWords() {
+   throw file_error ("is a " + error_file_type());
+}
+
 
 
 
 // good for now
 // class plain_file ------------------------------------------
 // returns the file size in bytes
-size_t plain_file::size() const { // obv needs to be changed
-   size_t size {0};
+size_t plain_file::size() const {
+   unsigned long check = 0;
+   for (unsigned int counter = 0; counter < data.size(); ++counter) {
+      check += data.at(counter).length();
+      if (counter > 0) ++check;
+   }
+   size_t size {check};
    DEBUGF ('i', "size = " << size);
    return size;
 }
@@ -194,8 +219,13 @@ const wordvec& plain_file::readfile() const {
 // writes to the file
 void plain_file::writefile (const wordvec& words) {
    data = words;
-   // cout << "wrote to file: " << words << "\n";
 }
+
+wordvec& plain_file::getWords() {
+   return data;
+}
+
+
 
 
 // good for now
@@ -206,7 +236,7 @@ directory::directory() {
 }
 
 size_t directory::size() const {
-   size_t size {0};
+   size_t size {dirents.size()};
    // cout << "size = " << size << "\n";
    return size;
 }

@@ -42,35 +42,43 @@ int exit_status_message() {
    return status;
 }
 
+// working
 void fn_cat (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
-   /*
-   if (words.size() == 2) {
-      map<string,inode_ptr> hello =  state.getDirents();
-      for (std::map<string, inode_ptr>::iterator it=hello.begin();
-         it != hello.end(); ++it) {
-         if (it->first == words.at(1)) {
-            if ( (*it->second).get_file_type() == "PLAIN_TYPE") {
-               // print the file
-            }
-            else {
-               throw command_error (words.at(1) + " is a directory");
-            }
-         }
-      }
-      throw command_error (words.at(1) + " no such file");
-   }
-   else
+   if (words.size() != 2)
       throw command_error ("incorrect input");
-   */
+   inode_ptr node = state.get_inode(words.at(1));
+   if (node == nullptr) {
+      throw command_error ("no such file");
+   }
+   if ((*node).get_file_type() != "PLAIN_TYPE") {
+      throw command_error ("is a directory not a file");
+   }
+   wordvec& print = (*node).get_words();
+   for (unsigned int counter = 0; counter < print.size(); ++counter) {
+      cout << print.at(counter) << " ";
+   }
+   cout << "\n";
 }
 
+// working
 void fn_cd (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
+   if (words.size() != 2)
+      throw command_error ("incorrect input");
+   inode_ptr node = state.get_inode(words.at(1));
+   if (node == nullptr) {
+      throw command_error ("no such directory");
+   }
+   if ((*node).get_file_type() == "PLAIN_TYPE") {
+      throw command_error ("is a file not a directory");
+   }
+   state.setCwd(node);
 }
 
+// working
 void fn_echo (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
@@ -85,6 +93,7 @@ void fn_exit (inode_state& state, const wordvec& words){
    throw ysh_exit();
 }
 
+// working good
 void fn_ls (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
@@ -104,7 +113,8 @@ void fn_ls (inode_state& state, const wordvec& words){
       it != hello.end(); ++it) {
       cout << "     " << (*it->second).get_inode_nr();
       cout << "     " << (*it->second).get_file_size();
-      cout << "  " << it->first << "\n";
+      cout << "  " << it->first;
+      cout << "\n";
    }
 
 }
@@ -117,8 +127,36 @@ void fn_lsr (inode_state& state, const wordvec& words){
 void fn_make (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
+   if (words.size() < 2)
+      throw command_error ("incorrect input");
+   
+   string input = words.at(1);
+   long back = input.length() - 1;
+
+   while (back >= 0 && input.at(back) != '/') {
+      --back;
+   }
+   string name = input.substr(back + 1);
+   input.resize(back + 1);
+
+   inode_ptr node = state.get_inode(words.at(1));
+   if (node != nullptr) {
+      throw command_error ("file already exists");
+   }
+   node = state.get_inode(input);
+   if (node == nullptr) {
+      throw command_error ("no such directory");
+   }
+   vector<string> writer;
+   for (unsigned int counter = 2; counter < words.size(); ++counter) {
+      writer.push_back(words.at(counter));
+   }
+   inode_ptr maker = make_shared<inode>(inode(file_type(0)));
+   (*maker).setWords(writer);
+   (*node).add_dirents(name, maker);
 }
 
+// working good!
 void fn_mkdir (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
@@ -159,18 +197,23 @@ void fn_prompt (inode_state& state, const wordvec& words){
    state.setPrompt(prompt);
 }
 
-// sort of working
+
 void fn_pwd (inode_state& state, const wordvec& words){
    DEBUGF ('c', state);
    DEBUGF ('c', words);
-   /*
-   map<string,inode_ptr> hello =  state.getDirents();
-   for (std::map<string, inode_ptr>::iterator it=hello.begin();
-      it != hello.end(); ++it) {
-      cout << it->first << " ";
+   if ((words.size() != 1))
+      throw command_error ("incorrect input");
+   inode_ptr node = state.get_inode("");
+   printBefore(node);
+
+   
+}
+
+void printBefore(inode_ptr node) {
+   if((*node).getDirents().at("..") != node) {
+      printBefore((*node).getDirents().at(".."));
    }
-   cout << "\n";
-   */
+   
 }
 
 void fn_rm (inode_state& state, const wordvec& words){
