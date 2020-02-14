@@ -44,7 +44,8 @@ string delete_whitespace (string cur) {
    return cur;
 }
 
-void do_line (string line, string file, int line_num) {
+void do_line (string line, string file, int line_num,
+   listmap<const string, const string, xless<const string>>* map) {
    cout << file << ": " << line_num << ": " << line << "\n";
    line = delete_whitespace(line);
    int equ = -1;
@@ -62,17 +63,19 @@ void do_line (string line, string file, int line_num) {
    }
    else if (equ == -1) {
       string key = line;
-      // no equals present
       // given key, find value
-      
-      cout << "given key: \"" << key
-         << "\", must find the value.\n";
-      
-
+      if (map->find(key) == map->end())
+         cout << key << ": key not found\n";
+      else
+         cout << *map->find(key);
    }
-   else if (line.length() == 1) { // and it is an '='
+   else if (line.length() == 1) {
       // print all the key and value pairs
-      cout << "must print all key value pairs\n";
+      auto iter = map->begin();
+      while (iter != map->end()) {
+         cout << *iter << "\n";
+         ++iter;
+      }
    }
    else if (equ == 0) {
       string value = line.substr(1);
@@ -108,14 +111,16 @@ int main (int argc, char** argv) {
    scan_options (argc, argv);
 
    int status = EXIT_SUCCESS;
-   static str_str_map map; // to be used in do_line
+   listmap<const string, const string, xless<const string>>* map
+      = new listmap<const string, const string, xless<const string>>;
 
+   // very ugly but it works
    if (argc == 1) {
       string line;
       for (int line_num = 1;; ++line_num) {
          getline(cin, line);
          if (cin.eof()) break;
-         do_line(line, "-", line_num);
+         do_line(line, "-", line_num, map);
       }
    }
    for (char** argp = &argv[optind]; argp != &argv[argc]; ++argp) {
@@ -125,7 +130,7 @@ int main (int argc, char** argv) {
          for (int line_num = 1;; ++line_num) {
             getline(cin, line);
             if (cin.eof()) break;
-            do_line(line, "-", line_num);
+            do_line(line, "-", line_num, map);
          }
       }
       else {
@@ -138,7 +143,7 @@ int main (int argc, char** argv) {
          else for (int line_num = 1;; ++line_num) {
             if (!inFile.good()) break;
             getline(inFile, line);
-            do_line(line, file_name, line_num);
+            do_line(line, file_name, line_num, map);
          }
          inFile.close();
       }

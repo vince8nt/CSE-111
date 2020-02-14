@@ -16,6 +16,8 @@
 template <typename key_t, typename mapped_t, class less_t>
 listmap<key_t,mapped_t,less_t>::~listmap() {
    DEBUGF ('l', reinterpret_cast<const void*> (this));
+   // while (!empty()) erase(end());
+   anchor_.next = anchor_.prev = NULL;
 }
 
 //----------------------------------------------- insert in order
@@ -25,7 +27,15 @@ template <typename key_t, typename mapped_t, class less_t>
 typename listmap<key_t,mapped_t,less_t>::iterator
 listmap<key_t,mapped_t,less_t>::insert (const value_type& pair) {
    DEBUGF ('l', &pair << "->" << pair);
-   return iterator();
+   listmap<key_t,mapped_t,less_t>::iterator locate = begin();
+   while (locate != end()) {
+   	if (less(pair.first, locate->first)) break;
+   	++locate;
+   }
+   node* toInsert = node(locate.where, locate.where->prev, pair);
+   toInsert->next->prev = toInsert;
+   toInsert->prev->next = toInsert;
+   return locate;
 }
 
 //----------------------------------------------- find the pair
@@ -35,7 +45,13 @@ template <typename key_t, typename mapped_t, class less_t>
 typename listmap<key_t,mapped_t,less_t>::iterator
 listmap<key_t,mapped_t,less_t>::find (const key_type& that) {
    DEBUGF ('l', that);
-   return iterator();
+   listmap<key_t,mapped_t,less_t>::iterator locate = begin();
+   while (locate != end()) {
+   	if (!less(that, locate->first))
+   		if (!less(locate->first, that)) break;
+   	++locate;
+   }
+   return locate;
 }
 
 //--------------------------------------------- delete the node
@@ -45,47 +61,16 @@ template <typename key_t, typename mapped_t, class less_t>
 typename listmap<key_t,mapped_t,less_t>::iterator
 listmap<key_t,mapped_t,less_t>::erase (iterator position) {
    DEBUGF ('l', &*position);
-   return iterator();
+   position.where->next->prev = position.where->prev;
+   position.where->prev->next = position.where->next;
+   free(position.where);
+   position.where = NULL;
+   return position;
 }
 
 
-//
-/////////////////////////////////////////////////////////////////
-// Operations on listmap iterator
-/////////////////////////////////////////////////////////////////
-//
 
-//---------------------------------------------- '*' derefrence
-//
-//
-template <typename key_t, typename mapped_t, class less_t>
 
-//-------------------------------------- '->' dereference and get
-//
-//
-template <typename key_t, typename mapped_t, class less_t>
-
-//------------------------------------------ '++'
-//
-// - completed in the header file
-
-//------------------------------------------ '--'
-//
-// - completed in the header file
-
-//----------------------------------------------------erase
-//
-// - already done in the listmap operations
-
-//------------------------------------------ '=='
-//
-//
-template <typename key_t, typename mapped_t, class less_t>
-
-//------------------------------------------ '!='
-//
-//
-template <typename key_t, typename mapped_t, class less_t>
 
 
 
