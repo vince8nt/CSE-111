@@ -16,7 +16,7 @@
 template <typename key_t, typename mapped_t, class less_t>
 listmap<key_t,mapped_t,less_t>::~listmap() {
    DEBUGF ('l', reinterpret_cast<const void*> (this));
-   // while (!empty()) erase(end());
+   while (begin() != end()) erase(begin());
    anchor_.next = anchor_.prev = NULL;
 }
 
@@ -32,7 +32,7 @@ listmap<key_t,mapped_t,less_t>::insert (const value_type& pair) {
    	if (less(pair.first, locate->first)) break;
    	++locate;
    }
-   node* toInsert = node(locate.where, locate.where->prev, pair);
+   node* toInsert = new node(locate.where, locate.where->prev, pair);
    toInsert->next->prev = toInsert;
    toInsert->prev->next = toInsert;
    return locate;
@@ -63,7 +63,7 @@ listmap<key_t,mapped_t,less_t>::erase (iterator position) {
    DEBUGF ('l', &*position);
    position.where->next->prev = position.where->prev;
    position.where->prev->next = position.where->next;
-   free(position.where);
+   delete position.where;
    position.where = NULL;
    return position;
 }

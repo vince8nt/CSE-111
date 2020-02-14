@@ -73,36 +73,38 @@ void do_line (string line, string file, int line_num,
       // print all the key and value pairs
       auto iter = map->begin();
       while (iter != map->end()) {
-         cout << *iter << "\n";
+         cout << *iter;
          ++iter;
       }
    }
    else if (equ == 0) {
       string value = line.substr(1);
       value = delete_whitespace(value);
-      // equals at begining
       // given value, find key
-      cout << "given value: \"" << value
-         << "\", must find key.\n";
+      auto iter = map->begin();
+      while (iter != map->end()) {
+         if (iter->second == value) cout << *iter;
+         ++iter;
+      }
    }
    else if (equ == static_cast<int>(line.length()) - 1) {
       string key = line.substr(0, line.length() - 1);
       key = delete_whitespace(key);
-      // equals at end
       // given key, delete key value pair
-      cout << "given key: \"" << key
-         << "\", must delete the pair.\n";
+      auto toErase = map->find(key);
+      if (toErase != map->end()) map->erase(toErase);
    }
    else {
       string key = line.substr(0, equ);
       string value = line.substr(equ + 1, line.length() - equ - 1);
       key = delete_whitespace(key);
       value = delete_whitespace(value);
-      // equals in the middle
       // create/modify key value pair
-      cout << "given key: \"" << key
-         << "\", must set the value to \""
-         << value << "\".\n";
+      auto toErase = map->find(key);
+      if (toErase != map->end()) map->erase(toErase);
+      // erase the key value pair if it already exists
+      xpair<const string, const string> pair(key, value);
+      map->insert(pair);
    }
 }
 
@@ -149,7 +151,8 @@ int main (int argc, char** argv) {
       }
    }
 
-   //cout << "EXIT_SUCCESS" << endl;
+   delete map;
+
    return status;
 }
 
