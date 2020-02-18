@@ -56,6 +56,12 @@ ${DEPFILE} :
 again :
 	${GMAKE} spotless dep ci all lis
 
+submit : 
+	submit cse111-wm.w20 asg3 debug.cpp debug.h listmap.h
+	submit cse111-wm.w20 asg3 main.cpp util.cpp util.h util.tcc
+	submit cse111-wm.w20 asg3 xless.h xpair.h Makefile README
+	submit cse111-wm.w20 asg3 listmap.tcc
+
 ifeq (${NEEDINCL}, )
 include ${DEPFILE}
 endif
