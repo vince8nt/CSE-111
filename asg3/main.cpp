@@ -51,11 +51,8 @@ void do_line (string line, string file, int line_num,
    int equ = -1;
    for (int ind = 0; ind < static_cast<int>(line.length()); ++ind) {
       if (line.at(ind) == '=') {
-         if (equ != -1) {
-            cout << "invalid input: must only contain one '='\n";
-            return;
-         }
          equ = ind;
+         break;
       }
    }
    if (line.length() == 0 || line.at(0) == '#') {
@@ -65,7 +62,7 @@ void do_line (string line, string file, int line_num,
       string key = line;
       // given key, find value
       if (map->find(key) == map->end())
-         cout << key << ": key not found\n";
+         cerr << key << ": key not found\n";
       else
          cout << *map->find(key);
    }
@@ -105,6 +102,7 @@ void do_line (string line, string file, int line_num,
       // erase the key value pair if it already exists
       xpair<const string, const string> pair(key, value);
       map->insert(pair);
+      cout << pair;
    }
 }
 
@@ -129,7 +127,8 @@ int main (int argc, char** argv) {
       string file_name = *argp;
       string line;
       if (file_name == "-") {
-         for (int line_num = 1;; ++line_num) {
+         cin.clear();
+         for (int line_num = 1;;  ++line_num) {
             getline(cin, line);
             if (cin.eof()) break;
             do_line(line, "-", line_num, map);
@@ -143,8 +142,9 @@ int main (int argc, char** argv) {
             status = EXIT_FAILURE;
          }
          else for (int line_num = 1;; ++line_num) {
-            if (!inFile.good()) break;
             getline(inFile, line);
+            if (!inFile.good()) break;
+            
             do_line(line, file_name, line_num, map);
          }
          inFile.close();
